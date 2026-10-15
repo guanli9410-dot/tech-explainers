@@ -1,0 +1,5 @@
+.zcode/
+bianwai-observer/
+Thumbs.db
+.DS_Store
+node_modules/

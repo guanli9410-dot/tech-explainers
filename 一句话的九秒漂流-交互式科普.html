@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一句话的九秒漂流 · 交互式科普</title>
+<style>
+:root{
+  --paper:#f6f2e8; --card:#fffdf7; --ink:#1d2634; --ink2:#5a6472; --line:#ddd5c3;
+  --blue:#3572db;  --blue-bg:#e4edfa;
+  --violet:#7c5cd6;--violet-bg:#ece7fa;
+  --amber:#c87608; --amber-bg:#faf0da;
+  --teal:#0e7a70;  --teal-bg:#dff1ee;
+  --red:#c93a3a;   --red-bg:#fae9e7;
+  --green:#2e8b4f; --green-bg:#e6f5ea;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  background-image:radial-gradient(rgba(0,0,0,.028) 1px, transparent 1px);
+  background-size:22px 22px;
+  color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+  line-height:1.85; font-size:16px;
+}
+.serif{font-family:Georgia,"Times New Roman","Songti SC","SimSun",serif}
+.wrap{max-width:940px;margin:0 auto;padding:0 22px}
+a{color:var(--blue)}
+
+/* ===== 顶部导航 ===== */
+#nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(246,242,232,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+#prog{height:3px;background:var(--red);width:0%;transition:width .2s linear}
+#navrow{max-width:940px;margin:0 auto;padding:8px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#navrow .brand{font-size:14px;letter-spacing:.12em;color:var(--ink);font-weight:600}
+#navdots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+#navdots a{font-size:12px;color:var(--ink2);text-decoration:none;padding:3px 9px;border-radius:99px;border:1px solid transparent;transition:all .25s}
+#navdots a.cur,#navdots a:hover{color:var(--ink);border-color:var(--line);background:#fff}
+main{padding-top:52px}
+
+/* ===== 幕结构 ===== */
+.act{padding:76px 0 30px;border-top:1px dashed var(--line)}
+.kicker{font-size:13px;letter-spacing:.35em;color:var(--red);font-weight:700;margin-bottom:10px}
+h2.question{font-family:Georgia,"Songti SC","SimSun",serif;font-size:clamp(24px,3.6vw,34px);font-weight:700;line-height:1.5;margin-bottom:22px}
+.narr{font-size:17.5px;max-width:760px;margin:14px 0;color:var(--ink)}
+.narr b{color:var(--ink)}
+.narr .hl{background:linear-gradient(transparent 62%, #f5d9a8 62%)}
+.fn{font-size:13px;color:var(--ink2);max-width:760px;margin:10px 0;line-height:1.7}
+.takeaway{margin:34px 0 8px;background:#fff;border-left:5px solid var(--red);border-radius:0 12px 12px 0;padding:16px 22px;font-family:Georgia,"Songti SC","SimSun",serif;font-size:18px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.takeaway .tk{font-size:12px;letter-spacing:.3em;color:var(--red);font-family:"PingFang SC","Microsoft YaHei",sans-serif;display:block;margin-bottom:4px}
+
+/* ===== 场景卡片 ===== */
+.scene{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin:28px 0;box-shadow:0 1px 5px rgba(0,0,0,.04);opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.scene.on{opacity:1;transform:none}
+.sc-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.sc-no{font-size:12px;color:var(--ink2);letter-spacing:.15em;white-space:nowrap}
+.sc-title{font-size:15px;font-weight:700}
+.replay{margin-left:auto;font-size:12.5px;color:var(--ink2);background:none;border:1px solid var(--line);border-radius:99px;padding:3px 14px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.replay:hover{color:var(--ink);border-color:var(--ink2);background:#fff}
+.stage{position:relative;min-height:60px}
+.cap{font-size:13.5px;color:var(--ink2);margin-top:14px;line-height:1.75;border-top:1px dashed var(--line);padding-top:10px}
+.cap b{color:var(--ink)}
+.btn{font-size:14px;background:var(--ink);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;transition:transform .15s,opacity .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.35;cursor:default;transform:none}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--ink2)}
+.badge{display:inline-block;font-size:12px;padding:2px 10px;border-radius:99px;margin:2px 4px 2px 0;border:1px solid var(--line);background:#fff;color:var(--ink2)}
+
+/* ===== 图形词汇：消息卡片 / 数据包 / token 积木 ===== */
+.msglist{display:flex;flex-direction:column;gap:8px}
+.msg{border-radius:10px;padding:9px 14px;font-size:14px;position:relative;border:1px solid var(--line);background:#fff;opacity:0;transform:translateY(10px);transition:all .5s ease}
+.msg.on{opacity:1;transform:none}
+.msg .role{font-size:11px;letter-spacing:.1em;display:block;color:var(--ink2);margin-bottom:2px}
+.msg.user{background:var(--blue-bg);border-color:#c4d8f4}
+.msg.assistant{background:var(--violet-bg);border-color:#d8cbf3}
+.msg.tool{background:var(--amber-bg);border-color:#ecd9ae}
+.msg.toolres{background:#fff;border-style:dashed}
+.msg.sys{background:#f1efe7;border-color:var(--line);font-size:13px;color:var(--ink2)}
+.msg.fold{filter:blur(.6px);opacity:.35!important}
+.pkg{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--ink);border-radius:10px;padding:8px 16px;font-size:13.5px;box-shadow:3px 3px 0 rgba(29,38,52,.14);opacity:0;transform:translateY(8px);transition:all .5s ease}
+.pkg.on{opacity:1;transform:none}
+.pkg .n{background:var(--ink);color:#fff;border-radius:6px;font-size:11px;padding:1px 7px}
+.chip{display:inline-block;padding:5px 11px;border-radius:8px;margin:3px;font-size:15px;background:#fff;border:1px solid var(--line);opacity:0;transform:scale(.7);transition:all .35s cubic-bezier(.2,.8,.3,1.2)}
+.chip.on{opacity:1;transform:none}
+.chip.c-blue{background:var(--blue-bg);border-color:#c4d8f4}
+.chip.c-amber{background:var(--amber-bg);border-color:#ecd9ae}
+.chip.c-teal{background:var(--teal-bg);border-color:#bcdcd7}
+.chip.c-violet{background:var(--violet-bg);border-color:#d8cbf3}
+.chip.c-red{background:var(--red-bg);border-color:#eec4c0}
+.chip.pick{outline:2.5px solid var(--red);outline-offset:1px}
+.fly{animation:flyx 1.6s ease-in-out forwards}
+@keyframes flyx{0%{opacity:0;transform:translate(0,0)}12%{opacity:1}88%{opacity:1}100%{opacity:0;transform:translate(var(--fx,300px),var(--fy,-40px))}}
+
+/* ===== 终端 ===== */
+.term{background:#141a24;border-radius:12px;padding:16px 18px;font-family:Consolas,"Courier New",monospace;font-size:14px;color:#cfe3d8;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.term .dots{display:flex;gap:6px;margin-bottom:10px}
+.term .dots i{width:10px;height:10px;border-radius:50%;background:#2c3644}
+.term .ln{min-height:22px;white-space:pre-wrap;word-break:break-all}
+.term .pr{color:#7fd0a8}
+.term .cur{display:inline-block;width:8px;height:16px;background:#cfe3d8;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.diff{font-family:Consolas,monospace;font-size:13.5px;border-radius:8px;overflow:hidden;margin-top:12px;border:1px solid #2c3644}
+.diff div{padding:3px 12px}
+.diff .del{background:#3b2020;color:#f2b8b5}
+.diff .add{background:#1d3323;color:#b8e6c5}
+
+/* ===== 概率柱 ===== */
+.bars{display:flex;align-items:flex-end;gap:10px;height:150px;padding:0 6px;border-bottom:2px solid var(--ink);margin-top:8px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;min-width:0}
+.bar .col{width:100%;max-width:74px;background:var(--blue);border-radius:5px 5px 0 0;transition:height .5s ease,background .3s;position:relative}
+.bar .pl{font-size:12px;color:var(--ink2);white-space:nowrap}
+.bar .wl{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.bar.sel .col{background:var(--red)}
+.bar.sel .wl{color:var(--red)}
+.bar.cut{opacity:.28;filter:grayscale(1)}
+.ctlrow{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:18px;font-size:14px}
+.ctlrow label{display:flex;gap:8px;align-items:center}
+input[type=range]{accent-color:var(--ink);width:170px}
+.toggle{position:relative;width:40px;height:22px;background:#cfc7b5;border-radius:99px;cursor:pointer;transition:.25s;flex:none}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle.on{background:var(--green)}
+.toggle.on::after{left:20px}
+.stat{font-size:13px;color:var(--ink2)}
+.stat b{color:var(--ink)}
+
+/* ===== 双联舞台 ===== */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px}
+@media(max-width:760px){.duo{grid-template-columns:1fr}}
+.zonebox{border:1.5px solid var(--line);border-radius:12px;padding:14px;background:#fff;position:relative}
+.zonebox .zt{font-size:12px;letter-spacing:.2em;color:var(--ink2);margin-bottom:10px;display:flex;gap:8px;align-items:center}
+.zonebox .zt .sq{width:10px;height:10px;border-radius:2px;flex:none}
+.zonebox.local .zt .sq{background:var(--blue)}
+.zonebox.remote .zt .sq{background:var(--teal)}
+.wire{height:56px;position:relative;margin:2px 0}
+.wire .lane{position:absolute;top:26px;left:8%;right:8%;border-top:1.5px dashed var(--ink2)}
+.wire .pkgwrap{position:absolute;top:8px;left:8%;font-size:12px}
+
+/* ===== 循环图 ===== */
+.loopwrap{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:center}
+@media(max-width:760px){.loopwrap{grid-template-columns:1fr}}
+.loop{position:relative;width:300px;height:300px;margin:0 auto}
+.loop .ring{position:absolute;inset:38px;border:2px dashed var(--ink2);border-radius:50%}
+.loop .arm{position:absolute;inset:0;transition:transform .8s cubic-bezier(.5,0,.3,1)}
+.loop .arm .head{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:var(--red);border-radius:50%;box-shadow:0 0 0 5px rgba(201,58,58,.18)}
+.loop .node{position:absolute;width:96px;padding:7px 4px;text-align:center;font-size:12.5px;background:#fff;border:1.5px solid var(--line);border-radius:10px;transition:all .3s;line-height:1.4}
+.loop .node.hot{border-color:var(--red);box-shadow:0 0 0 4px rgba(201,58,58,.14);transform:scale(1.06)}
+.loop .n1{top:-6px;left:102px}.loop .n2{top:120px;right:-10px}.loop .n3{bottom:-6px;left:102px}.loop .n4{top:120px;left:-10px}
+.loop .ctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-size:13px;color:var(--ink2)}
+.loop .ctr b{display:block;font-size:30px;color:var(--ink);font-family:Georgia,serif}
+.steplist{list-style:none;font-size:14px;display:flex;flex-direction:column;gap:7px;max-height:330px;overflow-y:auto;padding-right:6px}
+.steplist li{opacity:0;transform:translateX(-8px);transition:all .4s ease;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+.steplist li.on{opacity:1;transform:none}
+.steplist li .t{color:var(--red);font-size:12px;margin-right:8px;font-family:Consolas,monospace}
+.steplist li.remote{border-left:3px solid var(--teal)}
+.steplist li.local{border-left:3px solid var(--blue)}
+.permrow{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.perm{font-size:13.5px;padding:6px 16px;border-radius:8px;cursor:pointer;border:1.5px solid var(--ink2);background:#fff;transition:all .2s}
+.perm.ok:hover{background:var(--green-bg);border-color:var(--green)}
+.perm.no:hover{background:var(--red-bg);border-color:var(--red)}
+.perm.done{cursor:default;opacity:.9}
+
+/* ===== 格栅（受限解码） ===== */
+.grate{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.gtok{padding:5px 10px;border-radius:7px;font-family:Consolas,monospace;font-size:14px;background:#fff;border:1px solid var(--line);opacity:0;transform:translateY(-6px);transition:all .35s}
+.gtok.on{opacity:1;transform:none}
+.gtok.blocked{color:#b6b0a2;text-decoration:line-through;background:#f1efe7}
+.gtok.pick{outline:2.5px solid var(--red)}
+
+/* ===== 专家网格 / 层栈 / 卡墙 ===== */
+.expgrid{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;max-width:420px;margin:10px auto}
+.expgrid i{aspect-ratio:1;background:#e9e4d6;border-radius:3px;transition:background .4s,box-shadow .4s}
+.expgrid i.lit{background:var(--teal);box-shadow:0 0 0 2px rgba(14,122,112,.25)}
+.expgrid i.shared{background:var(--amber)}
+.legrow{display:flex;gap:18px;justify-content:center;font-size:12.5px;color:var(--ink2);flex-wrap:wrap;margin-top:8px}
+.legrow .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.stack61{display:flex;flex-direction:column-reverse;gap:3px;max-width:420px;margin:12px auto}
+.stack61 .ly{height:7px;border-radius:3px;background:#e2dcc9;transition:background .25s;position:relative}
+.stack61 .ly.act{background:var(--violet)}
+.stack61 .ly.att{background:var(--blue)}
+.stack61 .ly.ffn{background:var(--amber)}
+.dropvec{max-width:420px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink2)}
+.gemmcount{font-family:Georgia,serif;font-size:26px;text-align:center;margin-top:10px}
+.gemmcount b{color:var(--red);font-size:34px}
+.gpuwall{display:grid;grid-template-columns:repeat(16,1fr);gap:5px;max-width:460px;margin:12px auto}
+.gpuwall i{aspect-ratio:.72;border-radius:4px;background:#dfd9c8;border:1px solid #cfc8b4;transition:background .35s}
+.gpuwall i.lit{background:var(--teal);border-color:var(--teal)}
+.boxes{display:flex;align-items:flex-end;gap:26px;justify-content:center;margin:18px 0 6px;flex-wrap:wrap}
+.bigmbox{text-align:center;font-size:13px;color:var(--ink2)}
+.bigmbox .bx{border:2px solid var(--ink);border-radius:8px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:700;color:var(--ink);background:#fff}
+.overline-red{position:relative}
+.overline-red::after{content:"";position:absolute;left:-8%;right:-8%;top:46%;border-top:3px solid var(--red);transform:rotate(-4deg)}
+.belt{position:relative;height:120px;border-radius:12px;background:#fff;border:1.5px solid var(--line);overflow:hidden;margin-top:12px}
+.belt .rail{position:absolute;top:64px;left:0;right:0;border-top:3px solid #d5cebc}
+.belt .rail::after{content:"";position:absolute;top:-3px;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,transparent 0 14px,#b9b19c 14px 18px);animation:beltmove 1.2s linear infinite}
+@keyframes beltmove{to{background-position:-32px 0}}
+.belt .wbox{position:absolute;top:26px;width:56px;height:34px;background:var(--teal-bg);border:1.5px solid var(--teal);border-radius:6px;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--teal);animation:beltbox var(--spd,1.7s) linear infinite;transition:width .4s,height .4s}
+@keyframes beltbox{from{left:-70px}to{left:103%}}
+.belt .core{position:absolute;right:16px;top:18px;width:88px;height:88px;border:2px solid var(--ink);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;gap:4px;background:#fff}
+.belt .core .gear{font-size:22px;animation:spin 1.6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.belt .btag{position:absolute;left:14px;top:10px;font-size:12.5px;color:var(--ink2)}
+
+/* ===== 注意力 SVG ===== */
+.attnbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 10px 8px;margin-top:10px}
+.attnsvg{width:100%;height:auto;display:block}
+.attnsvg .tk{font-size:14px;fill:var(--ink)}
+.attnsvg .cur .tk,.attnsvg text.cur{fill:var(--red);font-weight:700}
+.attnsvg path.w,.attnsvg path.w2{fill:none;stroke-linecap:round;opacity:0;transition:opacity .7s}
+.attnsvg path.w{stroke:var(--blue)}
+.scene.on .attnsvg path.w{opacity:1}
+.attnsvg path.w2{stroke:var(--violet)}
+.attnsvg.multi path.w2{opacity:1}
+.attnsvg path.mask{stroke:var(--red);stroke-dasharray:5 5;fill:none;opacity:0;transition:opacity .4s}
+.attnsvg.showmask path.mask{opacity:.8}
+.attnsvg .lbl{font-size:11px;fill:#8a8272}
+
+/* ===== 时间轴（第四幕） ===== */
+.tl{position:relative;margin:16px 0 8px;padding-left:26px}
+.tl::before{content:"";position:absolute;left:8px;top:4px;bottom:4px;border-left:2px solid var(--line)}
+.tl .ev{position:relative;padding:6px 0 6px 8px;font-size:14.5px;opacity:.35;transition:all .4s}
+.tl .ev::before{content:"";position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#cfc7b5;transition:all .3s}
+.tl .ev.on{opacity:1}
+.tl .ev.on::before{background:var(--red);box-shadow:0 0 0 4px rgba(201,58,58,.15)}
+.tl .ev .tt{font-family:Consolas,monospace;font-size:12.5px;color:var(--red);margin-right:10px}
+.tl .ev.human.on{background:var(--red-bg);border-radius:8px;padding:6px 10px}
+.tl .ev .wh{font-size:11.5px;color:var(--ink2);margin-left:8px}
+table.bill{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:14px;background:#fff;border-radius:10px;overflow:hidden}
+table.bill th,table.bill td{border:1px solid var(--line);padding:7px 12px;text-align:left}
+table.bill th{background:#f1ede1;font-size:12.5px;letter-spacing:.05em}
+table.bill .t{font-family:Consolas,monospace;white-space:nowrap}
+table.bill tr.human td{background:var(--red-bg)}
+
+/* ===== 终幕 ===== */
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:26px 0}
+@media(max-width:700px){.facts{grid-template-columns:1fr}}
+.fact{background:#fff;border:1.5px solid var(--ink);border-radius:14px;padding:22px;box-shadow:4px 4px 0 rgba(29,38,52,.12)}
+.fact .fno{font-size:12px;letter-spacing:.3em;color:var(--red);margin-bottom:8px}
+.fact .ft{font-family:Georgia,"Songti SC","SimSun",serif;font-size:20px;line-height:1.6}
+.scaffold{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.endq{font-family:Georgia,"Songti SC","SimSun",serif;font-size:clamp(20px,3vw,27px);text-align:center;margin:56px auto 8px;max-width:700px;line-height:1.8}
+footer{border-top:1px solid var(--line);margin-top:70px;padding:30px 0 44px;font-size:13px;color:var(--ink2)}
+footer .src{font-size:12px;line-height:1.8;max-width:780px;margin-top:8px}
+
+/* misc */
+.fadein{opacity:0;transform:translateY(12px);transition:all .6s ease}
+.fadein.on{opacity:1;transform:none}
+.hide{display:none!important}
+.center{text-align:center}
+.mt{margin-top:14px}
+.small,.small *{font-size:13px}
+kbd{font-family:Consolas,monospace;background:#fff;border:1px solid var(--line);border-bottom-width:2.5px;border-radius:5px;padding:1px 7px;font-size:13px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+}
+</style>
+</head>
+<body>
+<div id="nav">
+  <div id="prog"></div>
+  <div id="navrow">
+    <span class="brand">一句话的九秒漂流</span>
+    <nav id="navdots">
+      <a href="#act0">引子</a><a href="#act1">一 · 接龙</a><a href="#act2">二 · 记忆</a><a href="#act3">三 · 分工</a><a href="#act4">四 · 九秒</a><a href="#act5">五 · 内部</a><a href="#act6">六 · 乘法</a>
+    </nav>
+  </div>
+</div>
+<main>
+<!-- ============ 引子 ============ -->
+<section class="act" id="act0">
+  <div class="wrap">
+    <div class="kicker">引子 · 九秒</div>
+    <h2 class="question">按下回车，9 秒后，一行代码改好了。<br>这 9 秒里，机器里发生了什么？</h2>
+    <p class="narr">这不是科幻，也不神秘。这 9 秒里，你的话穿过笔记本上的一个普通进程、一条网线，抵达城市另一头的机房——那里有几百张显卡为它工作；然后，答案再一个字一个字地流回来。</p>
+    <p class="narr">把这 9 秒拆开，只需要认识两样东西：一个老老实实记录对话的本地进程，和一个只会<span class="hl">"预测下一个词"</span>的模型。其余的一切——记忆、工具、权限——都是围绕这两个事实搭起来的脚手架。</p>
+
+    <div class="scene" data-script="prologue">
+      <div class="sc-head"><span class="sc-no">分镜 0</span><span class="sc-title">事情的开端：一句话与九秒</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="term">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="ln" id="proType"><span class="pr">$</span> <span id="proTxt"></span><span class="cur" id="proCur"></span></div>
+          <div class="diff hide" id="proDiff">
+            <div class="del">- API_BASE = 'http://old.example.net'</div>
+            <div class="add">+ API_BASE = 'https://api.example.com'</div>
+          </div>
+        </div>
+        <div class="gemmcount hide" id="proClock" style="font-size:20px">⏱ <b id="proSec">0.0</b> s</div>
+      </div>
+      <div class="cap">接下来，我们就跟着这 9 秒往下走。全片只有两个舞台：<b>你的笔记本</b>，和<b>远端的机房</b>。</div>
+    </div>
+    <p class="fn">※ 本页是《从用户指令到矩阵运算：概念谱系与运行图解》的科普伴读版。所有数字沿用该文已联网核查的数值；生活化的类比换算为量级示意。</p>
+  </div>
+</section>
+
+<!-- ============ 第一幕 接龙 ============ -->
+<section class="act" id="act1">
+  <div class="wrap">
+    <div class="kicker">第一幕 · 接龙</div>
+    <h2 class="question">为什么它的回答，总是一个字一个字地蹦出来？</h2>
+    <p class="narr">不是界面在模仿打字机。<span class="hl">模型每次只做一件事：预测下一个词。</span>预测一个、拼上一个，再预测下一个——你看到的"逐字"，是这场接力的如实转播。</p>
+
+    <div class="scene" data-script="relay">
+      <div class="sc-head"><span class="sc-no">分镜 1</span><span class="sc-title">接龙现场：抽签，落块，再抽签</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div id="relayLine"></div>
+        <div class="bars" id="relayBars"></div>
+        <div class="fn" id="relayHint">候选词按可能性排开，抽中一个，拼上去——然后预测下一个。如此往复几百次。</div>
+      </div>
+      <div class="cap">一次预测的产物不是"一句话"，而是词表里<b>每个候选词的可能性分布</b>；从中挑一个的规则，叫<b>采样</b>。术语到此只剩这一个，先记住它。</div>
+    </div>
+
+    <div class="scene" id="s1tree">
+      <div class="sc-head"><span class="sc-no">互动 ①</span><span class="sc-title">你来当一次模型：亲手接龙</span><button class="replay" id="treeReset">重来</button></div>
+      <div class="stage">
+        <div id="treeChips" class="mt"></div>
+        <div id="treeChoices" class="mt" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <div id="treeDone" class="fn hide"></div>
+      </div>
+      <div class="cap">你每点一次，完成的都是模型的全部工作：在候选里选下一块。它只是比你快几十万倍。</div>
+    </div>
+
+    <div class="scene" id="s1tok">
+      <div class="sc-head"><span class="sc-no">分镜 2</span><span class="sc-title">它眼里的文字：不是字，是"块"</span>
+        <button class="replay" id="tokBtnA">切一句中文</button><button class="replay" id="tokBtnB">切一个网址</button>
+      </div>
+      <div class="stage">
+        <div class="fn" id="tokSrc">文字先被切成 token（编号积木）——模型的世界里只有块，从来没有"字符"。</div>
+        <div id="tokLine" class="mt" style="font-size:17px"></div>
+        <div style="border-top:1.5px dashed var(--ink2);margin:10px 0;position:relative"><span style="position:absolute;right:-2px;top:-9px;font-size:13px;color:var(--ink2)">✂</span></div>
+        <div id="tokOut" class="mt"></div>
+        <div id="tokCnt" class="gemmcount hide"></div>
+      </div>
+      <div class="cap">上排为示意切分，下排为实测：这个网址正好切成 <b>5 块</b>。常见词一整块，生僻字、带路径的长网址会碎到十几块；DeepSeek 词表下，汉字约 <b>0.6 块/字</b>。为什么一切按块计费、按块限长——因为模型的世界里只有块。</div>
+    </div>
+
+    <div class="scene" id="s1temp">
+      <div class="sc-head"><span class="sc-no">互动 ②</span><span class="sc-title">抽签的手感：温度与 top-p</span></div>
+      <div class="stage">
+        <div class="bars" id="tempBars"></div>
+        <div class="ctlrow">
+          <label>温度 <input type="range" id="tempSlider" min="0.1" max="2" step="0.05" value="1"> <b id="tempVal" style="width:34px;display:inline-block">1.0</b></label>
+          <label><span class="toggle" id="toppTgl"></span> top-p 截断（p=0.9）</label>
+          <button class="btn" id="drawBtn">抽一次</button>
+          <span class="stat" id="drawStat">已抽 0 次</span>
+        </div>
+      </div>
+      <div class="cap"><b>温度</b>低，分布变尖，几乎必中头名——稳定但呆板；温度高，分布被抹平，偶尔爆冷——多样但易跑偏。<b>top-p</b> 把累计概率超出 p 的长尾整段砍掉（灰掉的柱子），防止抽到荒谬候选。拖一拖，抽几次，感受"分布"变成手感。</div>
+    </div>
+
+    <div class="takeaway"><span class="tk">一句话带走</span>所有惊人的回答，都是"预测下一个词"循环几百次、接出来的。</div>
+  </div>
+</section>
+
+<!-- ============ 第二幕 记忆 ============ -->
+<section class="act" id="act2">
+  <div class="wrap">
+    <div class="kicker">第二幕 · 记忆</div>
+    <h2 class="question">它记得你吗？</h2>
+    <p class="narr">严格地说——不记得。模型本身没有记忆：每一次请求，对话的<b>完整历史</b>都会被重新寄出；"它记得你"，只因为那些话还写在列表里。<span class="hl">删掉历史，它就真的不记得了。</span></p>
+
+    <div class="scene" data-script="stateless">
+      <div class="sc-head"><span class="sc-no">分镜 3</span><span class="sc-title">整段历史，每次都重发；服务端，算完即忘</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="duo">
+          <div class="zonebox local"><div class="zt"><span class="sq"></span>你的笔记本 · 消息列表</div>
+            <div class="msglist" id="stMsgs">
+              <div class="msg sys"><span class="role">system · 身份与纪律</span>…</div>
+              <div class="msg user"><span class="role">user</span>这个项目是干嘛的？</div>
+              <div class="msg assistant"><span class="role">assistant</span>（附一张读取文件的工具工单）</div>
+              <div class="msg toolres"><span class="role">工具结果</span>README.md 的内容……</div>
+              <div class="msg assistant"><span class="role">assistant</span>这是一个管线项目。</div>
+              <div class="msg user" id="stNewMsg"><span class="role">user</span>把 utils.py 里的 API_BASE 改成…</div>
+            </div>
+          </div>
+          <div class="zonebox remote"><div class="zt"><span class="sq"></span>远端机房 · 推理服务</div>
+            <div id="stRemoteStat" class="fn">待命。会话存储：<b>无</b>——它不保存任何人的任何对话。</div>
+            <div class="mt" id="stRemoteOut"></div>
+          </div>
+        </div>
+        <div class="wire"><div class="lane"></div><div class="pkgwrap" id="stFly"></div></div>
+      </div>
+      <div class="cap">服务端不保存任何会话状态，它是谁、在做什么，完全由这一单请求决定。<b>对话历史，就是智能体的全部记忆。</b>所谓"它记得"，只是历史还在列表里、且每次都随请求寄出。</div>
+    </div>
+
+    <div class="scene" data-script="window">
+      <div class="sc-head"><span class="sc-no">分镜 4</span><span class="sc-title">列表不能无限长：窗口与压缩</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="ctlrow" style="margin-top:0">
+          <span class="stat">对话长度 <b id="winCnt" style="font-size:18px;font-family:Georgia,serif">2 千块</b></span>
+          <span class="stat" style="flex:1;min-width:200px">上下文窗口
+            <span style="display:block;height:12px;border-radius:99px;background:#eee7d6;border:1px solid var(--line);overflow:hidden;margin-top:4px"><i id="winBar" style="display:block;height:100%;width:6%;background:var(--blue);transition:width .8s ease;border-radius:99px"></i></span>
+          </span>
+          <span class="stat" id="winLimit">上限 12.8 万块</span>
+        </div>
+        <div class="msglist mt" id="winMsgs">
+          <div class="msg sys"><span class="role">system</span>身份与纪律……</div>
+          <div class="msg user foldable"><span class="role">user · 很早以前</span>帮我看看这个报错：ModuleNotFoundError……</div>
+          <div class="msg assistant foldable"><span class="role">assistant · 很早以前</span>这是缺少依赖，先装一下……</div>
+          <div class="msg user foldable"><span class="role">user · 很早以前</span>装好了，再跑一遍……</div>
+          <div class="msg user"><span class="role">user · 最近</span>把 utils.py 里的 API_BASE 改一下……</div>
+          <div class="msg toolres"><span class="role">工具结果</span>utils.py 第 12 行：API_BASE='http://old…'</div>
+        </div>
+        <div id="winSummary" class="msg assistant hide"><span class="role">摘要（压缩后贴回）</span>此前讨论：排查过依赖报错并解决；当前任务：修改 utils.py 的 API_BASE。</div>
+      </div>
+      <div class="cap">历史总长度受<b>上下文窗口</b>限制（几万到上百万块不等）。超限就要"压缩"：把旧对话摘要成一段、丢弃原文、带着摘要继续。<b>摘要必然有损</b>——被压掉的细节等于永久丢失，这就是长会话"忘事"的原因。</div>
+    </div>
+
+    <div class="scene" data-script="prefix">
+      <div class="sc-head"><span class="sc-no">分镜 5</span><span class="sc-title">旧页不用重算：前缀缓存</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="fn" id="pfIntro">循环每圈都重发整段历史——听上去贵得离谱？妙处在于：历史<b>只增不改</b>，新旧请求只差末尾几条。</div>
+        <div class="mt" style="display:flex;height:46px;border-radius:10px;overflow:hidden;border:1.5px solid var(--ink)">
+          <div id="pfGreen" style="background:var(--green-bg);border-right:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--green);width:0;transition:width 1s ease;white-space:nowrap;overflow:hidden">上轮已算过 · 12,000 块</div>
+          <div id="pfOrange" style="background:var(--amber-bg);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--amber);flex:1">新增 30 块</div>
+        </div>
+        <div class="mt fadein" id="pfCheck"></div>
+        <div class="mt" style="max-width:560px">
+          <div class="stat" style="margin-bottom:2px">没有前缀缓存：每圈都全价重算</div>
+          <div style="height:18px;border-radius:99px;background:var(--red-bg);border:1px solid var(--red);width:100%;transition:width 1s;overflow:hidden"><i id="pfCostA" style="display:block;height:100%;width:0;background:var(--red);border-radius:99px;transition:width 1s ease .2s"></i></div>
+          <div class="stat" style="margin:10px 0 2px">有前缀缓存：只算新页</div>
+          <div style="height:18px"><i id="pfCostB" style="display:block;height:100%;width:0;background:var(--green);border-radius:99px;transition:width 1s ease .6s"></i></div>
+        </div>
+      </div>
+      <div class="cap">服务端把上一轮算过的部分直接留在显存里复用——<b>前缀缓存</b>。本例 12,030 块中 99.8% 直接命中，真正要算的只有新增的 30 块。<b>没有它，agent 循环每圈的费用高到玩不起——这是 agent 在经济上成立的隐形支柱。</b></div>
+    </div>
+
+    <div class="takeaway"><span class="tk">一句话带走</span>它的记性不在脑子里，在每次寄出的那份列表里；列表有上限，超限靠摘要，摘要必丢细节。</div>
+  </div>
+</section>
+
+<!-- ============ 第三幕 分工 ============ -->
+<section class="act" id="act3">
+  <div class="wrap">
+    <div class="kicker">第三幕 · 分工</div>
+    <h2 class="question">它说它"改好了文件"——真的吗？</h2>
+    <p class="narr">模型从不碰你的文件。它只做一件事：生成一张结构化的<b>工具工单</b>——"我想读取 utils.py"。真正去读文件的，是你笔记本上的一个普通程序；读完的结果作为一条新消息贴回列表，再整体寄回——<span class="hl">它这才知道文件里写了什么</span>。</p>
+
+    <div class="scene" data-script="ticket">
+      <div class="sc-head"><span class="sc-no">分镜 6</span><span class="sc-title">一张工单的旅程</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="zonebox remote" style="max-width:520px;margin:0 auto"><div class="zt"><span class="sq"></span>远端 · 模型输出</div>
+          <div class="msg tool" id="tkTicket"><span class="role">assistant · 工具工单（不是聊天文字）</span>{ "name": "Read", "input": { "file_path": "utils.py" } }</div>
+        </div>
+        <div class="wire"><div class="lane"></div><div class="pkgwrap" id="tkFly"></div></div>
+        <div class="zonebox local" style="max-width:520px;margin:0 auto"><div class="zt"><span class="sq"></span>你的笔记本 · 真正干活的地方</div>
+          <div class="msglist">
+            <div class="msg" id="tkExec"><span class="role">本地进程（普通代码，与模型无关）</span>权限检查 → 读取 utils.py ✔</div>
+            <div class="msg toolres" id="tkRes"><span class="role">工具结果 · 贴回列表</span>第 12 行：API_BASE='http://old.example.net'……</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">到此为止模型的工作就结束了——它甚至不知道文件是否存在。<b>它只负责"想"（生成工单），你的电脑负责"做"（执行）。</b>这个分离，是整个智能体安全设计的根基。</div>
+    </div>
+
+    <div class="scene" id="s3loop">
+      <div class="sc-head"><span class="sc-no">互动 ③</span><span class="sc-title">亲手转完这个循环</span><button class="btn ghost" id="loopNext">下一步 →</button></div>
+      <div class="stage">
+        <div class="loopwrap">
+          <div class="loop">
+            <div class="ring"></div>
+            <div class="arm" id="loopArm"><div class="head"></div></div>
+            <div class="node n1" data-n="0">① 发送请求<br><small>整段历史</small></div>
+            <div class="node n2" data-n="1">② 模型预测</div>
+            <div class="node n3" data-n="2">③ 执行工具</div>
+            <div class="node n4" data-n="3">④ 结果入列</div>
+            <div class="ctr" id="loopCtr"><b>0</b>圈</div>
+          </div>
+          <div>
+            <ul class="steplist" id="loopLog"></ul>
+            <div class="permrow hide" id="permRow">
+              <span style="font-size:13.5px;color:var(--red);font-weight:700">⚠ Edit 属危险操作，需要你确认：</span>
+              <button class="perm ok" id="permOk">允许</button><button class="perm no" id="permNo">拒绝</button>
+            </div>
+            <div class="fn hide" id="loopDone">循环停止条件：模型输出的不是工单，而是纯文本——服务端给这次回复打上标签 <b>end_turn</b>（"我认为说完了"），循环到此 break。所谓"自主工作 9 秒"，就是这个循环转了 3 圈。</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">每一圈都是：整段历史寄出 → 模型预测出工单 → 你的电脑执行 → 结果贴回列表。被拒绝也不是异常：拒绝同样会作为结果贴回，模型读到后自己改道。</div>
+    </div>
+
+    <div class="scene" data-script="grate">
+      <div class="sc-head"><span class="sc-no">分镜 7</span><span class="sc-title">为什么工单从不是坏 JSON：生成时的格栅</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div id="grLine" style="font-family:Consolas,monospace;font-size:16px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-height:44px;word-break:break-all"></div>
+        <div class="fn mt">此刻合法的下一块 ↓　　<span style="color:var(--red)">被格栅挡下的非法块</span></div>
+        <div class="grate" id="grGrate"></div>
+      </div>
+      <div class="cap">支持<b>受限解码</b>的服务端，在采样时套一层语法掩码：当前处于 JSON 的哪个位置，就只允许该位置合法的块，非法块的概率被直接置零。合法性是生成时被约束保证的，不是事后祈祷。（各家实现程度不一，也有厂商靠微调加重试。）</div>
+    </div>
+
+    <div class="scene" id="s3misc">
+      <div class="sc-head"><span class="sc-no">分镜 8</span><span class="sc-title">同一层还有几位配角</span></div>
+      <div class="stage" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px">
+        <div class="zonebox"><b>Hooks · 门外的规矩</b><div class="fn" style="margin:4px 0 0">工具调用前后触发的普通脚本：校验、拦截、格式化。整个系统里少数<b>不由模型决定</b>的确定逻辑。</div></div>
+        <div class="zonebox"><b>MCP · 外接工具插座</b><div class="fn" style="margin:4px 0 0">让任意第三方进程以标准协议挂进来提供工具。对模型而言，只是菜单变长了。</div></div>
+        <div class="zonebox"><b>子代理 · 派实习生</b><div class="fn" style="margin:4px 0 0">在全新的空白列表里起一个迷你循环去翻文件；海量中间垃圾烂在那里，主线只收回几行结论。</div></div>
+      </div>
+    </div>
+
+    <div class="takeaway"><span class="tk">一句话带走</span>模型只负责"想"，你的电脑负责"做"；拔掉网线，它连你的文件是否存在都无从得知。</div>
+  </div>
+</section>
+
+<!-- ============ 第四幕 九秒全记录 ============ -->
+<section class="act" id="act4">
+  <div class="wrap">
+    <div class="kicker">第四幕 · 九秒全记录</div>
+    <h2 class="question">把 9 秒拆开，每一毫秒在干什么？</h2>
+    <p class="narr">现在，把前三幕的全部机制放进同一段时间轴：上半是你笔记本，下半是远端机房，中间是往返的数据包。点「重播」，从第 0 毫秒开始。</p>
+
+    <div class="scene" data-script="timeline">
+      <div class="sc-head"><span class="sc-no">分镜 9</span><span class="sc-title">九秒，全程实录</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="duo">
+          <div class="zonebox local"><div class="zt"><span class="sq"></span>你的笔记本</div><div class="fn" id="tlLocal">待命</div></div>
+          <div class="zonebox remote"><div class="zt"><span class="sq"></span>远端机房</div><div class="fn" id="tlRemote">待命</div></div>
+        </div>
+        <div class="wire"><div class="lane"></div><div class="pkgwrap" id="tlFly"></div></div>
+        <div class="tl" id="tlList"></div>
+      </div>
+      <div class="cap">生成不是匀速涌出的：每个字都是一次完整的前向计算（约 30 毫秒/块），还要和同批的其他用户轮流上卡。你看到的"一个字一个字"，每一块背后都是整段历史的重算与一次全新预测。</div>
+    </div>
+
+    <table class="bill">
+      <tr><th>时刻</th><th>事件</th><th>发生在</th></tr>
+      <tr><td class="t">0 ms</td><td>回车，一条消息追加进列表</td><td>笔记本</td></tr>
+      <tr><td class="t">+5 ms</td><td>请求组装完成发出（整段历史 + 工具菜单）</td><td>网线</td></tr>
+      <tr><td class="t">~+90 ms</td><td>到达、切块、前缀命中 12,030 块（99.8% 复用）</td><td>机房</td></tr>
+      <tr><td class="t">90–110 ms</td><td>对 30 个新块做 prefill（一次性并行算完）</td><td>机房</td></tr>
+      <tr><td class="t">0.1–1.7 s</td><td>逐块生成 Read 工单（约 45 块 × ~30 ms）</td><td>机房</td></tr>
+      <tr><td class="t">1.71 s</td><td>权限自动放行，磁盘读文件（5 ms）</td><td>笔记本</td></tr>
+      <tr><td class="t">1.75–1.9 s</td><td>第 2 圈：结果入列，请求再发</td><td>网线</td></tr>
+      <tr><td class="t">1.9–3.7 s</td><td>逐块生成 Edit 工单（约 50 块）</td><td>机房</td></tr>
+      <tr class="human"><td class="t">3.7 s</td><td><b>等你按"允许"—— 1.5 秒。全场最慢的一环，是人。</b></td><td>你</td></tr>
+      <tr><td class="t">5.3–5.5 s</td><td>第 3 圈请求到达，prefill 新增块</td><td>机房</td></tr>
+      <tr><td class="t">5.5–8.7 s</td><td>逐块生成最终回复（约 95 块）</td><td>机房</td></tr>
+      <tr><td class="t">8.7 s</td><td>end_turn，循环退出，渲染完成</td><td>笔记本</td></tr>
+    </table>
+    <p class="fn">合计：3 次请求、约 200 个生成块、2 次工具执行、1 次人工确认。所有数字为量级示意（沿用伴读原文核查值），实际取决于服务负载与部署。</p>
+
+    <div class="takeaway"><span class="tk">一句话带走</span>所谓"自主工作 9 秒"，就是循环转了 3 圈；全场最慢的一环，是按"允许"的你。</div>
+  </div>
+</section>
+
+<!-- ============ 第五幕 内部 ============ -->
+<section class="act" id="act5">
+  <div class="wrap">
+    <div class="kicker">第五幕 · 内部</div>
+    <h2 class="question">预测下一个词的那一瞬间，<br>模型里面在做什么？</h2>
+    <p class="narr">每一块先被换成一行数字——注意是<b>查表</b>，不是计算：块编号当行号，从一张大表里取出一行，这一行 7168 个数字就是这块的"底片"。然后，它穿过 61 层结构完全相同的楼层；每层只做两件事：<span class="hl">搬运信息（注意力），加工信息（前馈网络）</span>。</p>
+
+    <div class="scene" data-script="embed">
+      <div class="sc-head"><span class="sc-no">分镜 10</span><span class="sc-title">第一步：查表，不是计算</span><button class="replay">重播</button></div>
+      <div class="stage" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-height:90px">
+        <span class="chip c-blue" id="emChip" style="font-size:17px">utils</span>
+        <span style="color:var(--ink2)">→</span>
+        <span style="font-family:Georgia,serif;font-size:22px;opacity:0;transition:opacity .5s" id="emId">编号 30441</span>
+        <span style="color:var(--ink2)">→</span>
+        <div style="flex:1;min-width:240px">
+          <div class="fn" id="emVecLabel" style="opacity:0;transition:opacity .5s">从 [129,280 行 × 7168 列] 的大表里，抽出第 30441 行：</div>
+          <div id="emVec" style="display:flex;gap:2px;height:26px;margin-top:4px"></div>
+        </div>
+      </div>
+      <div class="cap">这一步纯查表。模型对这块词的一切"加工"，都从这行数字开始——术语叫 <b>embedding</b>。</div>
+    </div>
+
+    <div class="scene" id="s5attn">
+      <div class="sc-head"><span class="sc-no">分镜 11</span><span class="sc-title">注意力：给相关的词贴荧光标</span>
+        <label style="margin-left:auto;font-size:13px;display:flex;gap:6px;align-items:center;cursor:pointer"><span class="toggle" id="maskTgl"></span>因果掩码</label>
+        <label style="font-size:13px;display:flex;gap:6px;align-items:center;cursor:pointer"><span class="toggle" id="headTgl"></span>多头</label>
+      </div>
+      <div class="attnbox"><svg class="attnsvg" id="attnSvg" viewBox="0 0 860 210"></svg></div>
+      <div class="legrow">
+        <span><span class="sw" style="background:var(--blue)"></span>指代头：『它』在找先前的名词</span>
+        <span><span class="sw" style="background:var(--violet)"></span>语境头：关注时间与状态</span>
+        <span><span class="sw" style="background:var(--red)"></span>虚线＝被掩码挡住的"未来"</span>
+      </div>
+      <div class="cap">当前词向句中每个词发问："你和我要说的是一回事吗？"——相关程度变成连线粗细，再把各词的信息按粗细<b>加权收拢</b>，这就是"取上下文"的数学形态，术语叫<b>注意力</b>。<b>因果掩码</b>：连线只能指向左边（过去），不能偷看未来——这是模型必须逐块生成的根本原因。<b>多头</b>：几十组连线并行各管一种关系（DeepSeek-V3 为 128 头，图示 2 组）。</div>
+    </div>
+
+    <div class="scene" data-script="moe">
+      <div class="sc-head"><span class="sc-no">分镜 12</span><span class="sc-title">前馈网络：256 位专家，每次只请 8 位</span><button class="replay">重播</button></div>
+      <div class="stage center">
+        <div class="mt" style="font-size:15px">当前 token：<b id="moeTok" style="font-family:Georgia,serif;font-size:18px;color:var(--red)">「改」</b>　路由器：只为它点亮 8 间诊室</div>
+        <div class="expgrid" id="moeGrid"></div>
+        <div class="legrow">
+          <span><span class="sw" style="background:var(--teal)"></span>被路由到（8 / 256）</span>
+          <span><span class="sw" style="background:var(--amber)"></span>常驻共享专家（1 位，谁都要过）</span>
+          <span><span class="sw" style="background:#e9e4d6"></span>本轮未被调用</span>
+        </div>
+        <div class="mt" style="max-width:520px;margin-left:auto;margin-right:auto">
+          <div class="stat" style="margin-bottom:2px">总知识（全部参数）：<b>6710 亿</b></div>
+          <div style="height:18px;border-radius:99px;background:var(--teal-bg);border:1px solid var(--teal);overflow:hidden"><i style="display:block;height:100%;width:100%;background:var(--teal);border-radius:99px"></i></div>
+          <div class="stat" style="margin:10px 0 2px">单个 token 实际动用：<b>约 370 亿</b>（约 1/18）</div>
+          <div style="height:18px;border-radius:99px;background:var(--amber-bg);border:1px solid var(--amber);overflow:hidden"><i style="display:block;height:100%;width:5.5%;background:var(--amber);border-radius:99px"></i></div>
+        </div>
+      </div>
+      <div class="cap">把每层的"加工车间"拆成 256 间专家诊室，每块只请 8 间出诊（另有 1 间常驻）——效果是<b>总知识量巨大、单块计算量很小</b>：用稀疏性换来了便宜的大模型。这是 DeepSeek-V3 的招牌设计（术语叫 MoE，混合专家；前 3 层仍是全量车间）。</div>
+    </div>
+
+    <div class="scene" id="s5misc">
+      <div class="sc-head"><span class="sc-no">分镜 13</span><span class="sc-title">三个不起眼、但缺不得的零件</span></div>
+      <div class="stage" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <div class="zonebox"><b>位置编码</b><div class="fn" style="margin:4px 0 0">块的先后顺序必须以某种方式注入，否则注意力对顺序完全不敏感。主流做法把位置变成旋转角度（RoPE）。</div></div>
+        <div class="zonebox"><b>残差连接</b><div class="fn" style="margin:4px 0 0">每层输出＝输入＋本层贡献，信息像走高速路直通顶层——这是能堆 61 层的原因。</div></div>
+        <div class="zonebox"><b>归一化</b><div class="fn" style="margin:4px 0 0">每层入口把数值幅度拉回稳定范围，防止 61 层连乘后越乘越炸。</div></div>
+      </div>
+    </div>
+
+    <div class="takeaway"><span class="tk">一句话带走</span>61 层，每层＝搬运信息＋加工信息；模型的"知识"，主要就存在这 61 层的权重里。</div>
+  </div>
+</section>
+
+<!-- ============ 第六幕 乘法 ============ -->
+<section class="act" id="act6">
+  <div class="wrap">
+    <div class="kicker">第六幕 · 乘法</div>
+    <h2 class="question">拆到最底，"智能"是什么运算？</h2>
+    <p class="narr">答案平淡得惊人：<span class="hl">乘法。</span>查表之后的每一步——投影、打分、加工、表态——全是<b>矩阵乘</b>：两张大数字表格相乘再相加，别无其他。生成一块字，就是把几百次矩阵乘叠着做完；所谓推理，是每秒千万亿次乘加的堆叠。</p>
+
+    <div class="scene" data-script="gemm">
+      <div class="sc-head"><span class="sc-no">分镜 14</span><span class="sc-title">矩阵瀑布：一块字穿过的 61 层</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="dropvec"><span>进：一块的"底片"</span><span>出：新的可能性分布</span></div>
+        <div class="stack61" id="gemmStack"></div>
+        <div class="gemmcount">本块已穿过 <b id="gemmCnt">0</b> / 61 层 · 累计约 <b id="gemmMul">0</b> 次矩阵乘</div>
+        <div class="mt center" id="gemmOut" style="min-height:40px"></div>
+      </div>
+      <div class="cap">蓝条＝注意力（搬运），琥珀条＝前馈专家（加工）。经验公式：每块计算量 ≈ 2 × 激活参数量 次浮点乘加——约 <b>740 亿次</b>。图示 31 层（示意），实际 61 层。</div>
+    </div>
+
+    <div class="scene" id="s6wall">
+      <div class="sc-head"><span class="sc-no">分镜 15</span><span class="sc-title">显存墙：不是算不快，是搬不动</span>
+        <label style="margin-left:auto;font-size:13px;display:flex;gap:6px;align-items:center;cursor:pointer"><span class="toggle" id="quantTgl"></span>量化（FP16 → FP8）</label>
+      </div>
+      <div class="stage">
+        <div class="belt" id="beltBox">
+          <span class="btag">生成每块字：都要把约 <b>37GB 激活权重</b> 从显存搬一遍 ↓</span>
+          <div class="wbox" id="wb1">37GB</div>
+          <div class="wbox" id="wb2" style="animation-delay:-2.4s">37GB</div>
+          <div class="wbox" id="wb3" style="animation-delay:-4.8s">37GB</div>
+          <div class="core"><span class="gear">⚙</span>计算核心<small style="color:var(--ink2)">几乎闲置</small></div>
+        </div>
+        <div class="fn mt" id="beltNote">算术本身微不足道（几十微秒量级）；~30 毫秒的大头花在：让几十 GB 权重流过显存、多卡同步、与其他用户轮流上卡。</div>
+      </div>
+      <div class="cap"><b>显存带宽</b>涨得远慢于算力——推理的瓶颈常常不是"算不快"而是"搬不动"。<b>量化</b>因此成为最直接的解药：权重从 16 比特压到 8 或 4 比特，货变小了，一趟就能搬更多（DeepSeek-V3 干脆原生 FP8 训练）。</div>
+    </div>
+
+    <div class="scene" data-script="wall">
+      <div class="sc-head"><span class="sc-no">分镜 16</span><span class="sc-title">最后的问题：这些乘法，住在哪里？</span><button class="replay">重播</button></div>
+      <div class="stage">
+        <div class="boxes">
+          <div class="bigmbox"><div class="bx" style="width:150px;height:110px;font-size:20px">671 GB</div>FP8 权重总量</div>
+          <div class="bigmbox"><div class="bx overline-red" style="width:64px;height:52px;font-size:15px">80 GB</div>单卡显存</div>
+          <div class="bigmbox"><div class="bx" style="width:120px;height:88px;font-size:16px">640 GB</div>单机 8 卡总和<br><b style="color:var(--red)">——连权重都装不下</b></div>
+        </div>
+        <div class="gpuwall" id="gpuWall"></div>
+        <div class="legrow"><span>■ prefill 阶段：<b>32</b> 张卡</span><span>■ decode 阶段：<b>320</b> 张卡（官方最小部署）</span></div>
+      </div>
+      <div class="cap">单机放不下，就拆给多卡接力：权重矩阵竖着切开同算（张量并行）、专家分摊到不同卡（专家并行）、层栈分段接力（流水线并行）。<b>你的一次请求，在物理上是几十到几百张 GPU 协作的结果——这是一句话旅程的终点。</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 终幕 ============ -->
+<section class="act" id="finale">
+  <div class="wrap">
+    <div class="kicker">终幕 · 什么不是魔法</div>
+    <h2 class="question">九秒走完，回到起点。</h2>
+    <p class="narr">驱动这一切的，只有两个平平无奇的事实：</p>
+    <div class="facts">
+      <div class="fact"><div class="fno">事实一</div><div class="ft">它只会预测下一个 token。<br>再长的回答、再复杂的推理，都是接龙接出来的。</div></div>
+      <div class="fact"><div class="fno">事实二</div><div class="ft">它自己什么都不记得。<br>记忆全在每次寄出的那份列表里，算完即忘。</div></div>
+    </div>
+    <p class="narr">其余的一切，都是围绕这两个事实搭的脚手架：</p>
+    <div class="scaffold">
+      <span class="badge">记忆 → 外部消息列表</span><span class="badge">性格 → 系统提示词</span><span class="badge">工具 → 工单＋本地执行</span><span class="badge">安全 → 权限闸门与沙箱</span><span class="badge">长任务 → 循环＋压缩＋清单文件</span><span class="badge">聪明 → 61 层矩阵乘</span>
+    </div>
+    <p class="endq fadein">那么——一个只会接龙、什么都不记得的系统，<br>为什么能改对你的代码、写出像样的文章？<br><span style="font-size:.72em;color:var(--ink2)">这仍然是这个时代最值得盯着看的问题之一。</span></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>关于本页</b>
+    <div class="src">《一句话的九秒漂流》——《从用户指令到矩阵运算：概念谱系与运行图解》的交互科普伴读版。数字与机制均以该文的联网核查为准（DeepSeek-V3 技术报告 arXiv:2412.19437、Anthropic / OpenAI / vLLM / MCP 官方文档、FlashAttention 论文等，详见原文附录）；生活化类比与图形均为量级示意。单文件离线可用，无外部依赖。</div>
+  </div>
+</footer>
+
+</main>
+<script>
+"use strict";
+/* ================= 基础设施 ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function makeCtl(){const c={dead:false,timers:[],ints:[],
+  after(ms,fn){if(!c.dead)c.timers.push(setTimeout(()=>{if(!c.dead)fn()},ms));return c},
+  every(ms,fn){if(!c.dead){const id=setInterval(()=>{if(!c.dead)fn();else clearInterval(id)},ms);c.ints.push(id)}return c},
+  kill(){c.dead=true;c.timers.forEach(clearTimeout);c.ints.forEach(clearInterval)}};
+  return c}
+function flyPkg(slot,label,dir,ctl){
+  slot.innerHTML='';slot.style.left=dir>0?'8%':'auto';slot.style.right=dir<0?'8%':'auto';
+  const p=document.createElement('span');p.className='pkg fly';p.innerHTML='📦 '+label;
+  p.style.setProperty('--fx',dir>0?'calc(100% - 200px)':'calc(-1 * (100% - 200px))');
+  p.style.setProperty('--fy','-14px');
+  slot.appendChild(p);
+  if(ctl)ctl.after(1800,()=>p.remove());
+}
+function addChip(box,txt,cls){const s=document.createElement('span');s.className='chip '+cls;s.textContent=txt;box.appendChild(s);requestAnimationFrame(()=>s.classList.add('on'))}
+function renderBars(box,cands){box.innerHTML='';const mx=Math.max(...cands.map(x=>x[1]));
+  cands.forEach(x=>{const d=document.createElement('div');d.className='bar';
+    d.innerHTML='<span class="pl">'+x[1]+'%</span><div class="col" style="height:0%"></div><span class="wl">'+x[0]+'</span>';
+    box.appendChild(d);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>d.querySelector('.col').style.height=(x[1]/mx*100)+'%'));});}
+
+const SCRIPTS={};
+function runScene(el){const name=el.dataset.script,fn=SCRIPTS[name];if(!fn)return;
+  if(el._ctl)el._ctl.kill();const ctl=makeCtl();el._ctl=ctl;el.classList.add('on');fn(el,ctl)}
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(!e.isIntersecting)return;const el=e.target;io.unobserve(el);
+  if(el.dataset.script)runScene(el);else el.classList.add('on')})},{threshold:.22});
+const fio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');fio.unobserve(e.target)}}),{threshold:.4});
+
+/* ================= 引子 ================= */
+SCRIPTS.prologue=(el,c)=>{
+  const txt='把 utils.py 里的 API_BASE 改成 https://api.example.com';
+  const T=$('#proTxt'),cur=$('#proCur'),diff=$('#proDiff'),clock=$('#proClock'),sec=$('#proSec');
+  T.textContent='';cur.style.display='';diff.classList.add('hide');clock.classList.add('hide');sec.textContent='0.0';
+  let i=0;
+  c.after(500,()=>{c.every(38,()=>{ if(i<txt.length){T.textContent+=txt[i++]}
+    else{c.ints.forEach(clearInterval);c.ints.length=0;cur.style.display='none';clock.classList.remove('hide');
+      let s=0;c.every(72,()=>{s+=0.093;if(s>=9){s=9;c.ints.forEach(clearInterval);c.ints.length=0;diff.classList.remove('hide')}
+        sec.textContent=s.toFixed(1)})}})});
+};
+
+/* ================= 第一幕：接龙 ================= */
+SCRIPTS.relay=(el,c)=>{
+  const line=$('#relayLine'),bars=$('#relayBars'),hint=$('#relayHint');
+  line.innerHTML='';bars.innerHTML='';
+  hint.textContent='候选词按可能性排开，抽中一个，拼上去——然后预测下一个。如此往复几百次。';
+  const rounds=[
+    {pre:[['今天','c-blue'],['天气','c-blue'],['真','c-blue']],cands:[['好',55],['不错',18],['冷',9],['热',6],['糟',5]],pick:0},
+    {cands:[['，',30],['。',22],['！',18],['呀',10],['嗯',6]],pick:0},
+    {cands:[['出门',26],['散步',19],['看海',14],['写代码',8],['躺着',6]],pick:0},
+    {cands:[['。',78],['！',12],['吧',6],['呀',4]],pick:0}
+  ];
+  rounds[0].pre.forEach((w,k)=>c.after(250+k*170,()=>addChip(line,w[0],w[1])));
+  let t=1050;
+  rounds.forEach(r=>{
+    c.after(t,()=>renderBars(bars,r.cands));t+=1000;
+    c.after(t,()=>{if(bars.children[r.pick])bars.children[r.pick].classList.add('sel')});t+=520;
+    c.after(t,()=>{bars.innerHTML='';addChip(line,r.cands[r.pick][0],'c-blue')});t+=430;});
+  c.after(t+250,()=>hint.innerHTML='整句完成——一共 <b>'+line.children.length+'</b> 块，接龙 <b>'+(line.children.length-rounds[0].pre.length)+'</b> 次。每次接龙前，模型都要把已生成的内容全部重看一遍。');
+};
+
+/* 互动① 你来接龙 */
+const TREE={t:'深夜的机房里，最后一排机柜的灯还亮着，',ch:[
+  {t:'风扇',ch:[{t:'的声音盖过了一切，',ch:[{t:'只有指示灯还在眨眼。'},{t:'像退潮后的海滩。'}]},{t:'把热气送向天花板，',ch:[{t:'那里安静得像凌晨四点。'}]}]},
+  {t:'突然',ch:[{t:'一条请求抵达了，',ch:[{t:'三百二十张显卡同时醒了过来。'}]},{t:'一行文字开始逐块生长，',ch:[{t:'像有人在黑暗里点灯。'}]}]},
+  {t:'数据',ch:[{t:'在光纤里奔跑，',ch:[{t:'九秒后，一行代码将被改好。'}]},{t:'安静地排着队，',ch:[{t:'等待属于自己的那一次乘法。'}]}]}
+]};
+let treeNode=TREE;
+function treeShowChoices(){const box=$('#treeChoices'),done=$('#treeDone');box.innerHTML='';
+  if(treeNode.ch&&treeNode.ch.length){
+    treeNode.ch.forEach(ch=>{const b=document.createElement('button');b.className='chip c-blue on';b.style.cursor='pointer';b.textContent=ch.t;
+      b.onclick=()=>{addChip($('#treeChips'),ch.t,'c-blue');treeNode=ch;treeShowChoices()};box.appendChild(b)});
+  }else{done.classList.remove('hide');
+    done.innerHTML='——每一次点击，都是一次「预测下一个词」。你刚才接了 <b>'+($('#treeChips').children.length-1)+'</b> 次；模型每秒能接几十次，而且是在 <b>13 万个候选</b>里接。';}}
+function treeInit(){treeNode=TREE;const chips=$('#treeChips');chips.innerHTML='';addChip(chips,TREE.t,'c-violet');treeShowChoices()}
+
+/* 分镜2 token 切分 */
+const TOKA={src:'今天天气真好',chips:[['今天','c-blue'],['天气','c-blue'],['真','c-blue'],['好','c-blue']],note:'（示意切分：常见词一整块）'};
+const TOKB={src:'https://api.example.com',chips:[['https','c-amber'],['://','c-amber'],['api','c-amber'],['.example','c-amber'],['.com','c-amber']],note:'（实测：正好 5 块）'};
+function runTok(d){const src=$('#tokSrc'),out=$('#tokOut'),cnt=$('#tokCnt');
+  src.innerHTML='待切分：<b style="color:var(--ink)">'+d.src+'</b>';out.innerHTML='';cnt.classList.add('hide');
+  d.chips.forEach((x,k)=>setTimeout(()=>addChip(out,x[0],x[1]),200+k*240));
+  setTimeout(()=>{cnt.classList.remove('hide');cnt.innerHTML='共 <b>'+d.chips.length+'</b> 块 '+d.note},250+d.chips.length*240);}
+
+/* 互动② 温度与 top-p */
+const TBASE=[['的',.18],['了',.14],['好',.12],['呢',.09],['吧',.08],['嗯',.07],['雨',.05],['芝',.04]];
+let toppOn=false,draws=0,hits=0;
+function tempDist(){const T=+$('#tempSlider').value;
+  let a=TBASE.map(x=>[x[0],Math.pow(x[1],1/T)]);const s=a.reduce((p,x)=>p+x[1],0);a=a.map(x=>[x[0],x[1]/s]);
+  if(toppOn){let cum=0;a.forEach(x=>{x[2]=cum<0.9;cum+=x[1]})}else a.forEach(x=>x[2]=true);
+  return a}
+function tempRender(){const box=$('#tempBars');box.innerHTML='';const d=tempDist();
+  const mx=Math.max(...d.filter(x=>x[2]).map(x=>x[1]))||1;
+  d.forEach(x=>{const el=document.createElement('div');el.className='bar'+(x[2]?'':' cut');
+    el.innerHTML='<span class="pl">'+(x[1]*100).toFixed(x[1]<.01?1:0)+'%</span><div class="col" style="height:'+Math.max(2,x[1]/mx*100)+'%"></div><span class="wl">'+x[0]+'</span>';
+    box.appendChild(el)})}
+function tempDraw(){const d=tempDist().filter(x=>x[2]);const s=d.reduce((p,x)=>p+x[1],0);let r=Math.random()*s,pick=null;
+  for(const x of d){r-=x[1];if(r<=0){pick=x;break}}
+  draws++;if(pick===d[0])hits++;
+  tempRender();
+  [...$('#tempBars').children].forEach(el=>{if(el.querySelector('.wl').textContent===pick[0])el.classList.add('sel')});
+  $('#drawStat').innerHTML='已抽 <b>'+draws+'</b> 次 · 头名「的」命中 <b>'+hits+'</b>（'+Math.round(hits/draws*100)+'%）';
+  setTimeout(()=>{[...$('#tempBars').children].forEach(el=>el.classList.remove('sel'))},700);}
+
+/* ================= 第二幕：记忆 ================= */
+SCRIPTS.stateless=(el,c)=>{
+  const msgs=$$('#stMsgs .msg'),stat=$('#stRemoteStat'),out=$('#stRemoteOut'),fly=$('#stFly');
+  msgs.forEach(m=>m.classList.remove('on'));out.innerHTML='';stat.style.color='';
+  stat.innerHTML='待命。会话存储：<b>无</b>——它不保存任何人的任何对话。';
+  msgs.slice(0,5).forEach((m,k)=>c.after(300+k*220,()=>m.classList.add('on')));
+  c.after(1900,()=>flyPkg(fly,'整段历史 · 5 条消息 · 一次 HTTPS',1,c));
+  c.after(2600,()=>{stat.style.color='var(--teal)';stat.innerHTML='处理中：切块 → 前缀命中 → 逐块生成…'});
+  c.after(3700,()=>{out.innerHTML='<span class="chip c-teal on">好的，我先看一下这个文件——</span>';
+    stat.style.color='';stat.innerHTML='回复完毕。会话状态：<b>已清空</b>（算完即忘，不保存）'});
+  c.after(4700,()=>msgs[5].classList.add('on'));
+  c.after(5200,()=>flyPkg(fly,'整段历史 · 6 条 · <b>每次全量重发</b>',1,c));
+  c.after(5900,()=>{stat.style.color='var(--teal)';stat.innerHTML='又是从零开始——它对“上一轮”毫无印象，除非那写在列表里'});
+  c.after(6900,()=>{stat.style.color='';out.innerHTML+='<div class="fn" style="margin-top:6px">“它记得你”＝那些话还写在列表里，且每次都随请求寄出。</div>'});
+};
+
+SCRIPTS.window=(el,c)=>{
+  const cnt=$('#winCnt'),bar=$('#winBar'),lim=$('#winLimit');
+  const folds=$$('#winMsgs .foldable'),sum=$('#winSummary');
+  folds.forEach(m=>m.classList.remove('fold','hide'));sum.classList.add('hide');
+  $$('#winMsgs .msg').forEach(m=>m.classList.add('on'));
+  bar.style.background='var(--blue)';lim.style.color='';lim.textContent='上限 12.8 万块';
+  const stops=[[2,'2 千块',6],[40,'4 万块',31],[90,'9 万块',70],[126,'12.6 万块',98]];
+  stops.forEach((s,k)=>c.after(400+k*850,()=>{cnt.textContent=s[1];bar.style.width=s[2]+'%'}));
+  const t0=400+stops.length*850;
+  c.after(t0,()=>{cnt.textContent='12.8 万块';bar.style.width='100%';bar.style.background='var(--red)';lim.style.color='var(--red)';lim.textContent='已达上限'});
+  c.after(t0+800,()=>folds.forEach((m,k)=>c.after(k*200,()=>m.classList.add('fold'))));
+  c.after(t0+1700,()=>folds.forEach(m=>m.classList.add('hide')));
+  c.after(t0+2000,()=>{sum.classList.remove('hide');sum.classList.add('on');
+    cnt.textContent='1.1 万块';bar.style.width='9%';lim.style.color='';lim.textContent='带着摘要继续'});
+};
+
+SCRIPTS.prefix=(el,c)=>{
+  const g=$('#pfGreen'),chk=$('#pfCheck'),a=$('#pfCostA'),b=$('#pfCostB');
+  g.style.width='0';a.style.width='0';b.style.width='0';chk.textContent='';
+  c.after(500,()=>g.style.width='97.6%');
+  c.after(1500,()=>chk.innerHTML='✓ 命中 12,000 块：直接挂上显存里现成的中间结果，<b>零计算</b>；只有新增的 30 块需要算。');
+  c.after(2300,()=>a.style.width='100%');
+  c.after(3000,()=>b.style.width='4%');
+};
+/* ================= 第三幕：分工 ================= */
+SCRIPTS.ticket=(el,c)=>{
+  const t=$('#tkTicket'),ex=$('#tkExec'),res=$('#tkRes'),fly=$('#tkFly');
+  t.classList.remove('on');ex.classList.remove('on');res.classList.remove('on');fly.innerHTML='';
+  c.after(400,()=>t.classList.add('on'));
+  c.after(1400,()=>flyPkg(fly,'工单 JSON · 经网络回到你的笔记本',1,c));
+  c.after(2400,()=>ex.classList.add('on'));
+  c.after(3200,()=>res.classList.add('on'));
+  c.after(4300,()=>flyPkg(fly,'结果贴回列表 · 整段历史再发',1,c));
+};
+
+/* 互动③ 单步循环 */
+const LOOPSTEPS=[
+  {n:0,who:'local',t:'0 ms',txt:'发出请求：整段历史 12,030 块，一次 HTTPS'},
+  {n:1,who:'remote',t:'0.1–1.7 s',txt:'模型逐块预测 → 产出工单：<b>Read(utils.py)</b>'},
+  {n:2,who:'local',t:'1.71 s',txt:'权限：Read 在自动放行清单 → 本地读取 utils.py（5 ms）'},
+  {n:3,who:'local',txt:'工具结果贴回列表 → 12,300 块'},
+  {n:0,who:'local',t:'1.75 s',txt:'第 2 圈：整段历史再发'},
+  {n:1,who:'remote',t:'1.9–3.7 s',txt:'产出工单：<b>Edit(old → new)</b>'},
+  {n:2,who:'local',t:'3.7 s',txt:'权限：Edit 属危险操作 → <b>停下，等你确认</b>',perm:true},
+  {n:3,who:'local',t:'5.2 s',txt:'写盘：已替换 1 处 → 结果贴回列表'},
+  {n:0,who:'local',t:'5.3 s',txt:'第 3 圈：请求再发'},
+  {n:1,who:'remote',t:'5.5–8.7 s',txt:'产出最终回复（纯文本）· 标签 <b>end_turn</b> → 循环停止',end:true}
+];
+let lq=[],lbusy=false,lturns=0;
+function logLine(html,who){const log=$('#loopLog');const li=document.createElement('li');li.className=who||'local';li.innerHTML=html;
+  log.appendChild(li);requestAnimationFrame(()=>{li.classList.add('on');log.scrollTop=log.scrollHeight})}
+function loopInit(){lq=LOOPSTEPS.slice();lbusy=false;lturns=0;
+  $('#loopLog').innerHTML='';$('#permRow').classList.add('hide');$('#loopDone').classList.add('hide');
+  $('#loopNext').disabled=false;$('#loopNext').textContent='下一步 →';
+  $('#loopArm').style.transform='rotate(0deg)';
+  $$('#s3loop .node').forEach(n=>n.classList.remove('hot'));
+  $('#loopCtr').innerHTML='<b>0</b>圈'}
+function loopAdvance(){if(lbusy)return;const st=lq.shift();if(!st)return;lbusy=true;
+  if(st.n===0){lturns++;$('#loopCtr').innerHTML='<b>'+lturns+'</b>圈'}
+  $('#loopArm').style.transform='rotate('+(st.n*90)+'deg)';
+  $$('#s3loop .node').forEach(n=>n.classList.toggle('hot',+n.dataset.n===st.n));
+  logLine((st.t?'<span class="t">'+st.t+'</span>':'')+st.txt,st.who);
+  if(st.perm){$('#permRow').classList.remove('hide');$('#loopNext').disabled=true;return}
+  if(st.end){$('#loopNext').disabled=true;$('#loopDone').classList.remove('hide');$('#loopNext').textContent='已完成 ✓'}
+  lbusy=false}
+function permPick(ok){if(!lbusy)return;$('#permRow').classList.add('hide');$('#loopNext').disabled=false;
+  if(ok){logLine('<span class="t">你</span>按下了「允许」——用了 1.5 秒，全场最慢的一环')}
+  else{lq.length=0;
+    lq.push({n:3,who:'local',txt:'「用户拒绝」贴回列表'});
+    lq.push({n:1,who:'remote',txt:'模型读到拒绝，改道：不再改文件，改为说明修改方案'});
+    lq.push({n:1,who:'remote',txt:'输出说明文本 · <b>end_turn</b> → 循环停止',end:true});
+    logLine('<span class="t">你</span>按下了「拒绝」——这不是异常路径，模型会读到并改道')}
+  lbusy=false}
+
+SCRIPTS.grate=(el,c)=>{
+  const line=$('#grLine'),g=$('#grGrate');
+  const seqg=[
+    {pick:'{',ok:['{',' ','\\n'],bad:['@','？','的']},
+    {pick:'"',ok:['"','n'],bad:['@','9','。']},
+    {pick:'name',ok:['name','n','Name'],bad:['=','！','呢']},
+    {pick:'"',ok:['"'],bad:['@','？','的']},
+    {pick:':',ok:[':'],bad:['=','？','。']},
+    {pick:'"Read"',ok:['"Read"','"Write"'],bad:['Read','@']},
+    {pick:'}',ok:['}'],bad:['{','@','，']}
+  ];
+  line.innerHTML='';g.innerHTML='';
+  let t=300;
+  seqg.forEach(s=>{
+    c.after(t,()=>{g.innerHTML='';
+      s.ok.concat(s.bad).forEach(w=>{const d=document.createElement('span');
+        d.className='gtok on'+(s.bad.includes(w)?' blocked':'');d.textContent=w;g.appendChild(d)})});t+=880;
+    c.after(t,()=>{[...g.children].forEach(d=>{if(!d.classList.contains('blocked')&&d.textContent===s.pick)d.classList.add('pick')})});t+=480;
+    c.after(t,()=>{const d=document.createElement('span');d.className='gtok on';
+      d.style.background='var(--violet-bg)';d.style.borderColor='#d8cbf3';d.textContent=s.pick;line.appendChild(d)});t+=260;});
+  c.after(t+250,()=>{g.innerHTML='<span class="gtok on" style="border-color:var(--green);color:var(--green)">✔ 一路合法——不是运气好，是被保证的</span>'});
+};
+
+/* ================= 第四幕：九秒 ================= */
+const TLEV=[
+  {t:'0 ms',txt:'回车。一条新消息追加进列表——这是此刻唯一发生的变化',local:'消息追加 · 列表 12,030 块'},
+  {t:'+5 ms',txt:'请求组装完成：整段历史＋工具菜单，一次发出',fly:'→'},
+  {t:'~+90 ms',txt:'到达远端：切块；前缀命中 12,030 块（99.8% 复用）',remote:'切块 → 前缀命中'},
+  {t:'90–110 ms',txt:'prefill：只对 30 个新块，一次性并行算完',remote:'prefill ×30'},
+  {t:'0.1–1.7 s',txt:'逐块生成 Read 工单（约 45 块 × ~30 ms）',remote:'decode 中…',fly:'←'},
+  {t:'1.71 s',txt:'权限自动放行；磁盘读取 utils.py（5 ms）',local:'读取 utils.py ✔'},
+  {t:'1.75–1.9 s',txt:'第 2 圈：结果入列，请求再发',fly:'→'},
+  {t:'1.9–3.7 s',txt:'逐块生成 Edit 工单（约 50 块）',remote:'decode 中…'},
+  {t:'3.7 s',txt:'等你按「允许」—— 1.5 秒。全场最慢的一环，是人',human:true,local:'等待人类…'},
+  {t:'5.3–5.5 s',txt:'第 3 圈请求到达，prefill 新增块',remote:'prefill'},
+  {t:'5.5–8.7 s',txt:'逐块生成最终回复（约 95 块）',remote:'decode 中…',fly:'←'},
+  {t:'8.7 s',txt:'end_turn：循环退出，渲染完成',local:'完成 ✔'}
+];
+SCRIPTS.timeline=(el,c)=>{
+  const ll=$('#tlList'),L=$('#tlLocal'),R=$('#tlRemote'),fly=$('#tlFly');
+  ll.innerHTML='';L.textContent='待命';R.textContent='待命';fly.innerHTML='';
+  TLEV.forEach(ev=>{const li=document.createElement('li');li.className='ev'+(ev.human?' human':'');
+    li.innerHTML='<span class="tt">'+ev.t+'</span>'+ev.txt;ll.appendChild(li)});
+  TLEV.forEach((ev,k)=>c.after(500+k*1150,()=>{ll.children[k].classList.add('on');
+    if(ev.local)L.innerHTML='▸ '+ev.local;
+    if(ev.remote)R.innerHTML='▸ '+ev.remote;
+    if(ev.fly)flyPkg(fly,ev.fly==='→'?'整段历史 →':'← 生成的块',ev.fly==='→'?1:-1,c)}));
+};
+
+/* ================= 第五幕：内部 ================= */
+SCRIPTS.embed=(el,c)=>{
+  const chip=$('#emChip'),id=$('#emId'),vl=$('#emVecLabel'),vec=$('#emVec');
+  id.style.opacity=0;vl.style.opacity=0;vec.innerHTML='';chip.classList.remove('on');
+  c.after(200,()=>chip.classList.add('on'));
+  c.after(900,()=>id.style.opacity=1);
+  c.after(1600,()=>{vl.style.opacity=1;
+    for(let i=0;i<26;i++){const d=document.createElement('i');
+      d.style.cssText='flex:1;border-radius:2px;background:hsl('+(i*14)+',55%,'+(58+Math.round(Math.sin(i)*12))+'%);opacity:0;transform:scaleY(.2);transition:all .3s '+(i*22)+'ms';
+      vec.appendChild(d);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.opacity=1;d.style.transform='none'}))}});
+};
+
+function buildAttn(){
+  const svg=$('#attnSvg'),NS='http://www.w3.org/2000/svg';
+  const toks=['那只','猫','追','了','很久','，','因为','它','很饿'];
+  const W=860,y=170,xs=toks.map((_,i)=>60+i*(W-120)/(toks.length-1));
+  toks.forEach((t,i)=>{const tx=document.createElementNS(NS,'text');
+    tx.setAttribute('x',xs[i]);tx.setAttribute('y',y);tx.setAttribute('text-anchor','middle');
+    tx.setAttribute('class','tk'+(t==='它'?' cur':''));tx.textContent=t;svg.appendChild(tx)});
+  const it=xs[7];
+  function arc(x2,cls,wd,delay){const p=document.createElementNS(NS,'path');
+    const cy=Math.max(30,150-wd*11);
+    p.setAttribute('d','M '+it+',152 Q '+(it+x2)/2+','+cy+' '+x2+',152');
+    p.setAttribute('class',cls);p.setAttribute('stroke-width',Math.max(1,wd));
+    p.style.transitionDelay=delay+'ms';svg.appendChild(p)}
+  [1.2,9,2.5,1,1.6,.8,1.2].forEach((w,i)=>arc(xs[i],'w',w,i*90));
+  arc(xs[4],'w2',6,300);arc(xs[3],'w2',2.5,380);arc(xs[1],'w2',2,460);arc(xs[2],'w2',2,540);
+  const pm=document.createElementNS(NS,'path');
+  pm.setAttribute('d','M '+it+',178 Q '+(it+xs[8])/2+',206 '+xs[8]+',178');
+  pm.setAttribute('class','mask');pm.setAttribute('stroke-width',2);svg.appendChild(pm);
+  const lx=document.createElementNS(NS,'text');
+  lx.setAttribute('x',(it+xs[8])/2);lx.setAttribute('y',206);lx.setAttribute('text-anchor','middle');
+  lx.setAttribute('class','lbl');lx.textContent='未来 · 不可见';svg.appendChild(lx);
+  $('#maskTgl').onclick=e=>{e.currentTarget.classList.toggle('on');svg.classList.toggle('showmask')};
+  $('#headTgl').onclick=e=>{e.currentTarget.classList.toggle('on');svg.classList.toggle('multi')};
+}
+
+SCRIPTS.moe=(el,c)=>{
+  const grid=$('#moeGrid');
+  if(!grid.children.length){for(let i=0;i<256;i++)grid.appendChild(document.createElement('i'));
+    grid.children[17].classList.add('shared')}
+  [...grid.children].forEach(x=>x.classList.remove('lit'));
+  const toks=['改','utils','，','API','的','成','https'];let i=0;
+  const tick=()=>{$('#moeTok').textContent='「'+toks[i%toks.length]+'」';i++;
+    [...grid.children].forEach(x=>x.classList.remove('lit'));
+    const picks=new Set([17]);while(picks.size<9)picks.add(Math.floor(Math.random()*256));
+    [...picks].forEach((pk,k)=>setTimeout(()=>{if(!c.dead)grid.children[pk].classList.add('lit')},k*60))};
+  tick();c.every(1700,tick);
+};
+
+/* ================= 第六幕：乘法 ================= */
+SCRIPTS.gemm=(el,c)=>{
+  const st=$('#gemmStack');st.innerHTML='';
+  for(let i=0;i<31;i++)st.appendChild(document.createElement('div'));
+  $('#gemmCnt').textContent='0';$('#gemmMul').textContent='0';$('#gemmOut').innerHTML='';
+  let k=0;
+  c.every(95,()=>{if(k>=61){c.ints.forEach(clearInterval);c.ints.length=0;
+      $('#gemmOut').innerHTML='<span class="chip c-violet on">输出：129,280 个候选块各自的得分 → 交给第一幕的抽签</span>';return}
+    k++;const bar=st.children[Math.min(30,Math.floor((k-1)/2))];
+    bar.classList.add('act');bar.classList.add(k%2?'att':'ffn');
+    $('#gemmCnt').textContent=k;$('#gemmMul').textContent=k*5});
+};
+
+SCRIPTS.wall=(el,c)=>{
+  const w=$('#gpuWall');
+  if(!w.children.length){for(let i=0;i<320;i++)w.appendChild(document.createElement('i'))}
+  [...w.children].forEach(x=>x.classList.remove('lit'));
+  for(let i=0;i<32;i++)c.after(400+i*45,()=>w.children[i].classList.add('lit'));
+  for(let i=32;i<320;i++)c.after(2500+(i-32)*18,()=>w.children[i].classList.add('lit'));
+};
+
+/* ================= 初始化 ================= */
+$$('.scene').forEach(el=>io.observe(el));
+$$('.fadein').forEach(el=>fio.observe(el));
+$$('.scene[data-script] .replay').forEach(b=>b.onclick=()=>runScene(b.closest('.scene')));
+$('#treeReset').onclick=treeInit;
+$('#tokBtnA').onclick=()=>runTok(TOKA);
+$('#tokBtnB').onclick=()=>runTok(TOKB);
+new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){runTok(TOKA);o.disconnect()}}),{threshold:.5}).observe($('#s1tok'));
+$('#tempSlider').addEventListener('input',e=>{$('#tempVal').textContent=(Math.round(e.target.value*100)/100).toFixed(2).replace(/0$/,'');tempRender()});
+$('#toppTgl').onclick=e=>{toppOn=!toppOn;e.currentTarget.classList.toggle('on',toppOn);tempRender()};
+$('#drawBtn').onclick=tempDraw;
+$('#loopNext').onclick=loopAdvance;
+$('#permOk').onclick=()=>permPick(true);
+$('#permNo').onclick=()=>permPick(false);
+(function(){const sc=$('#s3loop');const rb=document.createElement('button');rb.className='replay';rb.textContent='重播';rb.onclick=loopInit;
+  sc.querySelector('.sc-head').appendChild(rb)})();
+$('#quantTgl').onclick=e=>{const on=e.currentTarget.classList.toggle('on');const b=$('#beltBox');
+  b.style.setProperty('--spd',on?'0.9s':'1.7s');
+  $$('#beltBox .wbox').forEach(w=>{w.textContent=on?'18.5GB':'37GB';w.style.width=on?'36px':'56px';w.style.height=on?'22px':'34px'});
+  $('#beltNote').innerHTML=on
+    ?'FP8：权重减半，一趟能搬两趟的货——带宽压力同步下降，精度只掉一点点（DeepSeek-V3 干脆原生 FP8 训练）。'
+    :'算术本身微不足道（几十微秒量级）；~30 毫秒的大头花在：让几十 GB 权重流过显存、多卡同步、与其他用户轮流上卡。'};
+const prog=$('#prog'),dots=$$('#navdots a');
+const actEls=['act0','act1','act2','act3','act4','act5','act6','finale'].map(id=>document.getElementById(id));
+addEventListener('scroll',()=>{const h=document.documentElement;
+  prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  let cur=0;actEls.forEach((a,i)=>{if(a&&a.getBoundingClientRect().top<innerHeight*.45)cur=i});
+  dots.forEach((d,i)=>d.classList.toggle('cur',i===cur))},{passive:true});
+buildAttn();tempRender();treeInit();loopInit();
+</script>
+</body>
+</html>
