@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>拷问导图 · 输入主题，AI 拷问出双视角思维导图</title>
+  <meta name="description" content="输入一个主题，AI 按「构建—运行双视角」骨架生成思维导图；点任意概念继续追问，长出子树或编辑。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============ 首页 ============ -->
+  <div id="view-home" class="view">
+    <div class="home-inner">
+      <header class="home-top">
+        <div class="logo">🔥 拷问导图 <span class="logo-sub">GrillMap</span></div>
+        <div class="home-top-btns">
+          <button class="btn ghost sm js-help">方法论</button>
+          <button class="btn ghost sm js-settings">⚙ API 设置</button>
+        </div>
+      </header>
+
+      <div id="keyBanner" class="banner hidden">
+        还没配置 API Key——生成导图需要接一个大模型（智谱 / DeepSeek / OpenAI 或本地 Ollama）。
+        <button class="btn sm">去设置</button>
+      </div>
+
+      <section class="hero">
+        <h1>输入一个主题，<br>让 AI 把它<span class="accent">拷问</span>透</h1>
+        <p class="tagline">按「构建—运行双视角」出骨架：<b>它解决什么问题 → 怎么构建 → 跑起来什么样 → 什么时候会坏</b>。<br>点击任意概念继续追问，长出子树；所有内容可编辑、可导出。</p>
+        <input id="topicInput" type="text" placeholder="例如：扩散模型、固态电池、人体免疫系统、货币政策、Rust 所有权……">
+        <div class="aud-row">
+          <span class="aud-label">我是：</span>
+          <label class="chip radio"><input type="radio" name="aud" value="beginner" checked><span>纯初学者</span></label>
+          <label class="chip radio"><input type="radio" name="aud" value="some"><span>有些基础</span></label>
+          <label class="chip radio"><input type="radio" name="aud" value="pro"><span>从业者</span></label>
+        </div>
+        <input id="goalInput" type="text" placeholder="学习目的（可选）：想动手做 / 看懂论文 / 面试 / 给别人讲……">
+        <button id="genBtn" class="btn primary lg">开始拷问 🔥</button>
+        <p class="hero-foot">没配 Key？先打开内置<b>示例导图</b>看看长什么样（下方列表）。</p>
+      </section>
+
+      <h2 class="section-title">我的导图</h2>
+      <div id="mapList"></div>
+
+      <footer class="home-foot">
+        方法论来自《概念拆解通用SOP》：搭建序列 / 发展图解 / 双视角骨架，标准术语不生造、首现术语大白话解释、瓶颈断言配定量口径。<br>
+        API Key 只存在你本浏览器（localStorage），不会上传任何服务器。
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============ 编辑器 ============ -->
+  <div id="view-editor" class="view hidden">
+    <header class="topbar">
+      <button id="backHome" class="btn ghost sm">← 列表</button>
+      <input id="mapTitle" class="map-title" title="点击重命名" spellcheck="false">
+      <span id="mapTypeBadge" class="badge type"></span>
+      <span id="mapMeta" class="meta"></span>
+      <div class="spacer"></div>
+      <button id="expMd" class="btn sm">导出 MD</button>
+      <button id="expJson" class="btn sm">JSON</button>
+      <button id="expPng" class="btn sm">PNG</button>
+      <button class="btn sm js-help" title="方法论与操作说明">?</button>
+      <button class="btn sm js-settings" title="API 设置">⚙</button>
+    </header>
+    <div id="canvasWrap">
+      <div id="canvas"></div>
+      <div id="genStatus" class="hidden"><span class="spin"></span>AI 正在拷问…（可以先拖动画布浏览）</div>
+      <div class="zoombar">
+        <button id="zoomIn" title="放大">＋</button>
+        <button id="zoomOut" title="缩小">－</button>
+        <button id="zoomFit" title="适应画布">⛶</button>
+      </div>
+      <div id="popover" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- ============ 设置 ============ -->
+  <div id="setModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>API 设置</h3>
+      <label class="field">服务商预设
+        <div id="presetRow" class="chips"></div>
+      </label>
+      <label class="field">API 地址（OpenAI 兼容接口）
+        <input id="setBase" type="text" spellcheck="false">
+      </label>
+      <label class="field">API Key（只存本浏览器 localStorage）
+        <input id="setKey" type="password" placeholder="sk-…" spellcheck="false">
+      </label>
+      <label class="field">模型
+        <input id="setModel" type="text" list="modelList" spellcheck="false">
+        <datalist id="modelList"></datalist>
+      </label>
+      <div id="corsWarn" class="warn-line" style="background:#fef3c7;border-radius:8px;padding:8px 10px;">
+        ⚠️ 智谱官方接口（bigmodel.cn / z.ai）<b>不支持浏览器直连</b>（跨域预检被拦，实测确认）。
+        三条路：① 把「API 地址」换成你的反代地址——<b>README 里有 10 行 Cloudflare Worker 配方</b>，部署后 Key 仍只存本地；② 改用 DeepSeek（可直连）；③ 本地跑 Ollama。
+      </div>
+      <div class="row2">
+        <button id="setTest" class="btn">测试连接</button>
+        <span class="hint">DeepSeek 与自建反代可浏览器直连；本地 Ollama 需设 <code>OLLAMA_ORIGINS=*</code>；智谱官方地址需反代（见上方黄条）。</span>
+      </div>
+      <div class="row2 end">
+        <button id="setSave" class="btn primary">保存</button>
+        <button class="btn modal-close">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 帮助 ============ -->
+  <div id="helpModal" class="modal hidden">
+    <div class="modal-card wide">
+      <h3>方法论：拷问式拆解</h3>
+      <p>AI 会先判定主题类型，再按对应骨架生成主干，最后你可以对任意节点继续追问。</p>
+      <table class="skeleton-table">
+        <tr><th>系统类 · 搭建序列</th><td>可设计搭建的东西（软件栈、模型、管线）。从「骨架：最小可动物」开始每步加一块功能，每步一句<b>需求句（≤50字）</b>；末枝是「一次实际运行」——跟一个真实任务从头走到尾。</td></tr>
+        <tr><th>路线类 · 发展图解</th><td>有代际演进的领域（电池、电机、路线之争）。起点（含参照系）→ 各代演进（解决了什么、固化了什么约束）→ 前沿站（无胜者则并列各牌）；末枝是「一次穿线」——同一任务各路线各跑一遍、看卡在哪。</td></tr>
+        <tr><th>通用类 · 双视角</th><td>其它概念/学科/技能：解决什么问题 → 静态视角（怎么构建/由什么组成）→ 动态视角（运行起来发生什么）→ 边界与失效（什么时候不管用、常见误区）。</td></tr>
+      </table>
+      <p><b>语言硬规则</b>（生成与追问同样生效）：只用领域公认标准术语，严禁自造词；首现术语必须用一句大白话解释；说人话不堆黑话；「X 是瓶颈」这类断言必须配定量量级例子；概念先立后用。</p>
+      <p><b>操作</b>：点节点 → 追问（自定义问题或快捷问题，追加/替换子节点）、编辑、手动加、删除。滚轮缩放，拖动平移，双击空白适应画布。导图自动保存在本浏览器。</p>
+      <div class="row2 end"><button class="btn primary modal-close">知道了</button></div>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <script src="prompts.js"></script>
+  <script src="mapview.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
