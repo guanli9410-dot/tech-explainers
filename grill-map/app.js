@@ -59,7 +59,7 @@ let maps = loadMaps();
   const flag = 'grillmap.seeded.' + id;
   if (localStorage.getItem(flag)) {
     // 范例图内容升级：未编辑过的旧版静默替换（编辑过的保留用户版本）
-    if (id === 'demo-audit' && maps['demo-audit'] && maps['demo-audit'].v !== 3 && maps['demo-audit'].updatedAt === maps['demo-audit'].createdAt) {
+    if (id === 'demo-audit' && maps['demo-audit'] && maps['demo-audit'].v !== 4 && maps['demo-audit'].updatedAt === maps['demo-audit'].createdAt) {
       maps['demo-audit'] = demoAuditMap();
       localStorage.setItem(LS_MAPS, JSON.stringify(maps));
     }
