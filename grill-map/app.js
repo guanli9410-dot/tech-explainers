@@ -54,7 +54,17 @@ function touch(map) { map.updatedAt = Date.now(); persistMaps(); }
 
 let settings = loadSettings();
 let maps = loadMaps();
-if (!Object.keys(maps).length) { const d = demoMap(); maps[d.id] = d; persistMaps(); }
+// 内置示例各播种一次（标记进 localStorage：用户删除后不再复活）
+['demo-harness', 'demo-audit'].forEach((id) => {
+  const flag = 'grillmap.seeded.' + id;
+  if (localStorage.getItem(flag)) return;
+  const d = id === 'demo-audit' ? demoAuditMap() : demoMap();
+  if (!maps[d.id]) {
+    maps[d.id] = d;
+    localStorage.setItem(LS_MAPS, JSON.stringify(maps));
+  }
+  localStorage.setItem(flag, '1');
+});
 
 /* ================= Toast ================= */
 function toast(msg, type = 'info', ms = 4200) {
@@ -160,7 +170,7 @@ function renderHome() {
     card.className = 'map-card';
     card.innerHTML = `
       <div class="mc-main">
-        <div class="mc-title">${esc(m.topic)}${m.demo ? ' <span class="badge demo">示例</span>' : ''}</div>
+        <div class="mc-title">${esc(m.topic)}${m.demo ? ` <span class="badge demo">${esc(m.demoLabel || '示例')}</span>` : ''}</div>
         <div class="mc-meta">${typeLabel(m.type)} · ${countNodes(m.tree)} 节点 · ${relTime(m.updatedAt)}</div>
       </div>
       <div class="mc-actions">
